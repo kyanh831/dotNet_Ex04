@@ -1,0 +1,47 @@
+﻿version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Ánh xạ cổng cho dịch vụ web
+      - "8081:8081" # Nếu dịch vụ sử dụng cổng 8081
+    depends_on:
+      - db
+      - keycloak
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=.;Database=Ex01_FoodStore;User Id=anhhk;Password=Admin@12345;
+      #- Keycloak__Url=http://keycloak:8080
+      #- Keycloak__ClientId=your_client_id
+      #- Keycloak__ClientSecret=your_client_secret
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - SA_PASSWORD=Admin@12345
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.2
+    container_name: keycloak
+    restart: on-failure
+    environment:
+      - DB_DATABASE=keycloak
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8181:8080"
+    command:
+      - start-dev
+
+volumes:
+  sqlserverdata:
